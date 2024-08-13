@@ -49,10 +49,10 @@ declare const objFilteredByValue: ObjectFilteredByPrimitiveValue<typeof obj>;
 objFilteredByValue.b; // ??? <-- we do not want key "b" to be accessible.
 
 /**
- * "FilterPrmitiveKeys" filters out the keys that have object values.
+ * "FilterPrimitiveKeys" filters out the keys that have object values.
  * So, the keys that have primitive or array values are returned.
  *  */
-type FilterPrmitiveKeys<T, K> = K extends keyof T
+type FilterPrimitiveKeys<T, K> = K extends keyof T
   ? T[K] extends object
     ? T[K] extends unknown[]
       ? K
@@ -61,7 +61,7 @@ type FilterPrmitiveKeys<T, K> = K extends keyof T
   : never;
 
 type ObjectFilteredByPrimitiveKey<T extends object> = {
-  [K in FilterPrmitiveKeys<T, keyof T>]: T[K];
+  [K in FilterPrimitiveKeys<T, keyof T>]: T[K];
 };
 
 declare const objFilteredByPrimitiveKey: ObjectFilteredByPrimitiveKey<
@@ -241,9 +241,7 @@ type SingleDepthFlattened<T extends object> = ObjectFilteredByPrimitiveKey<T> &
  *  */
 declare const singleDepthFlattened: SingleDepthFlattened<typeof obj>;
 
-type MultiDepthFlattened<T extends object> = ObjectFilteredByPrimitiveKey<T> &
-  RecursivelyUnwrappedObject<T>;
-type RecursiveFlattener<T> = T extends object ? MultiDepthFlattened<T> : never;
+type RecursiveFlattener<T> = T extends object ? Flattened<T> : never;
 type RecursivelyUnwrappedObject<T extends object> = Intersection<
   RecursiveFlattener<LiftedObject<T>>
 >;
