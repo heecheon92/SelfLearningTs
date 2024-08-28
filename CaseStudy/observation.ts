@@ -137,7 +137,13 @@ function withObservationTracking<T>(apply: () => T, onChange: () => void): T {
 function Observable<T extends { new (...args: any[]): object }>(
   constructor: T
 ) {
-  return class extends constructor {
+  /**
+   * "implements Observable" does not hold any particular significance in this context
+   * because TypeScript rather has structural type system than nominal type system.
+   * However it does provide a semantic meaning that the class is Observable and
+   * its implementation is derived from that of SwiftUI's Observable.
+   * */
+  return class extends constructor implements Observable {
     _$observationRegistrar = new ObservationRegistrar();
     access(keyPath: KeyPath<typeof this>) {
       this._$observationRegistrar.access(this, keyPath);
