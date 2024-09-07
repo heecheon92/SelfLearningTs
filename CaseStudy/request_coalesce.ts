@@ -22,7 +22,7 @@ async function someFetchRequest() {
  * @template U The type of error that the continuation may reject with.
  * @extends {Promise<T>}
  */
-class Continuation<T, U extends Error> extends Promise<T> {
+class Continuation<T, in out U extends Error> extends Promise<T> {
   private readonly $_resolve: (value: T | PromiseLike<T>) => void;
   private readonly $_reject: (reason: U | unknown) => void;
   public initialCallStack: Error["stack"];
@@ -50,7 +50,7 @@ class Continuation<T, U extends Error> extends Promise<T> {
     this.$_resolve(value);
   }
 
-  public resumeByThrowing<UError extends U>(error: UError | unknown): void {
+  public resumeByThrowing<U>(error: U): void {
     if (error instanceof Error) {
       error.stack = [error.stack?.split("\n")[0], this.initialCallStack].join(
         "\n"
