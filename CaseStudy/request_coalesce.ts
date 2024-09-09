@@ -22,16 +22,22 @@ async function someFetchRequest() {
  * @template U The type of error that the continuation may reject with.
  * @extends {Promise<T>}
  */
-class Continuation<T, in out U extends Error> extends Promise<T> {
-  private readonly $_resolve: (value: T | PromiseLike<T>) => void;
-  private readonly $_reject: (reason: U | unknown) => void;
+class Continuation<
+  T,
+  in TResolveParam extends T = T,
+  in URejectParam extends Error = Error
+> extends Promise<T> {
+  private readonly $_resolve: (
+    value: TResolveParam | PromiseLike<TResolveParam>
+  ) => void;
+  private readonly $_reject: (reason: URejectParam | unknown) => void;
   public initialCallStack: Error["stack"];
 
   constructor(
     executor: ConstructorParameters<typeof Promise<T>>[0] = () => {}
   ) {
-    let resolver: (value: T | PromiseLike<T>) => void;
-    let rejector: (reason: U | unknown) => void;
+    let resolver: (value: TResolveParam | PromiseLike<TResolveParam>) => void;
+    let rejector: (reason: URejectParam | unknown) => void;
 
     super((resolve, reject) => {
       resolver = resolve;
@@ -46,11 +52,15 @@ class Continuation<T, in out U extends Error> extends Promise<T> {
     this.initialCallStack = Error().stack?.split("\n").slice(2).join("\n");
   }
 
-  public resumeByReturning(value: T | PromiseLike<T>): void {
+  public resumeByReturning<TReturn extends TResolveParam>(
+    value: TReturn | PromiseLike<TReturn>
+  ): void {
     this.$_resolve(value);
   }
 
-  public resumeByThrowing<U>(error: U): void {
+  public resumeByThrowing<TError extends URejectParam>(
+    error: TError | unknown
+  ): void {
     if (error instanceof Error) {
       error.stack = [error.stack?.split("\n")[0], this.initialCallStack].join(
         "\n"
@@ -69,10 +79,10 @@ class Continuation<T, in out U extends Error> extends Promise<T> {
  */
 class RequestCoalescer<T> {
   private lock: boolean = false;
-  private continuationQueue: Continuation<T, Error>[] = [];
+  private continuationQueue: Continuation<T>[] = [];
 
-  private coalesce(): Continuation<T, Error> {
-    const cont = new Continuation<T, Error>();
+  private coalesce(): Continuation<T> {
+    const cont = new Continuation<T>();
     this.continuationQueue.push(cont);
     return cont;
   }
